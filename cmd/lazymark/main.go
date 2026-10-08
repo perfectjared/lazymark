@@ -21,13 +21,21 @@ import (
 func extractDirArg(args []string) string {
 	for i := 0; i < len(args); i++ {
 		if args[i] == "--dir" && i+1 < len(args) {
-			return args[i+1]
+			return absDir(args[i+1])
 		}
 		if strings.HasPrefix(args[i], "--dir=") {
-			return strings.TrimPrefix(args[i], "--dir=")
+			return absDir(strings.TrimPrefix(args[i], "--dir="))
 		}
 	}
 	return ""
+}
+
+// absDir hace absoluta una carpeta relativa: con una relativa, las rutas de las notas no se reconocían como de la carpeta ("is outside").
+func absDir(dir string) string {
+	if abs, err := filepath.Abs(dir); err == nil {
+		return abs
+	}
+	return dir
 }
 
 // usageHeader es la ayuda de `lazymark --help` antes de la lista de opciones.
@@ -174,6 +182,9 @@ func main() {
 		os.Exit(0)
 	}
 
+	if customDir != "" {
+		customDir = absDir(customDir)
+	}
 	if board != "" {
 		abs, err := filepath.Abs(board)
 		if err != nil {
