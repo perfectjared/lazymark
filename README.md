@@ -191,7 +191,7 @@ brew install mathiasdrizzy/tap/lazymark
 
 ## Quick start
 
-1. Run `lazymark`. It opens `~/Documents/notes`, creating it if needed. Use `lazymark --dir <folder>` for another folder, or pick one later in Settings.
+1. Run `lazymark`. It opens `~/Documents/notes`, creating it if needed. Use `lazymark --dir <folder>` for another folder, or pick one later in Settings. `lazymark --board Kanban.md` opens an Obsidian Kanban plugin board (`## Lane` headings) as the board, editing it in place ([docs/cli.md](docs/cli.md#lane-boards)).
 2. Press `c`, type a name and press `Enter` to create a note. Press `e` to write in your editor (`$EDITOR`, `micro` if it is not set).
 3. Press `?` any time to see the keys.
 

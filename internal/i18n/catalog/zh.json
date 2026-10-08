@@ -150,6 +150,7 @@
  "Open": "打开",
  "Open a note to paste an image": "打开一篇笔记以粘贴图片",
  "Open note": "打开笔记",
+ "Open this note as a lane board (## Lane headings and - [ ] cards); without --dir, its folder is the notes folder": "将此笔记作为泳道看板打开（## 泳道标题和 - [ ] 卡片）；未指定 --dir 时，其所在文件夹即为笔记文件夹",
  "Options:\n": "选项:\n",
  "Page down": "下一页",
  "Page up": "上一页",

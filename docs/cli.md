@@ -111,6 +111,8 @@ Which one is used depends on how the client opens (the same rule the specificati
 | `set_task_date` | `id`, `field` (`start` or `due`), `date` (`YYYY-MM-DD` or `none`) | `task due` and `task start` |
 | `toggle_task` | `id` (or `path` and `line`) | `task toggle` |
 | `get_kanban` | | the board: columns in order, each with its cards |
+| `get_board` | `board` | a lane board: lanes in order, each with its cards ([Lane boards](#lane-boards)) |
+| `move_card` | `id`, `lane` | move a lane board's card to another lane |
 
 An error comes back as a tool result with `isError: true` and the exit code in the text.
 
@@ -161,3 +163,15 @@ Changes the prefix of the board's column tag in every task: `#kb/doing` becomes 
 ## Kanban format
 
 The column of a task is a tag at the end of its line: `- [ ] write report #kb/doing`. No tag means the first column; `[x]` is always the done column; a `#kb/…` tag that is not one of your columns counts as the first column and is left alone until you move the card. Only `[ ]` and `[x]` are ever written. The old `#doing`, `#wip`, `#progreso` and `#in-progress` tags are read as `doing` and replaced by `#kb/doing` only when you move that card.
+
+## Lane boards
+
+A note in the shape of the Obsidian Kanban plugin is a **lane board**: each `## ` heading is a lane, and each `- [ ]`, `- [x]` or `- [X]` line at the margin under it is a card, with the indented lines right below it (up to the first blank line). Front matter (`---` … `---`) and `%%` blocks, such as `%% kanban:settings %%`, are skipped. The column of a card is the lane it sits under, not a tag, so the file stays readable by the Obsidian plugin and by `wb` (claude-connect), which follow the same rules.
+
+- `lazymark --board <note>` opens straight on that note's board, with its lanes as the columns (up to 32). Without `--dir`, the note's folder is the notes folder.
+- Moving a card (`H`/`L`, `Shift+←`/`Shift+→`, a drag, or the MCP tool `move_card`) moves its lines to the end of the target lane; the checkbox and the text are not touched, and the card keeps its id.
+- `Space` ticks or unticks the card where it is; it never moves it. A lane titled `Done` is shown as the done column.
+- `K`/`J` reorder cards inside a lane, as on the tag board.
+- MCP: `get_board` (`board`: the note's path) returns the lanes in order with their cards, each card's `column` being its lane's title; `move_card` (`id`, `lane`: a lane title, case-insensitive) moves a card. An unknown lane is a usage error (code 2) that lists the lanes.
+
+The tag board (no `--board`) is unchanged; the cards of a lane board appear there as well, in the column their tags say.

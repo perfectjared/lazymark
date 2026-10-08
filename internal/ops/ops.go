@@ -526,6 +526,69 @@ func (s *Service) Board() (BoardDTO, error) {
 	return b, nil
 }
 
+// LaneBoard devuelve el tablero de carriles de la nota board (## Carril y tarjetas - [ ], la forma del plugin Kanban de Obsidian): una
+// columna por carril, con su título como id y sus tarjetas en el orden del archivo. La columna de cada tarjeta es el título de su carril.
+func (s *Service) LaneBoard(board string) (BoardDTO, error) {
+	path, err := s.Store.ResolveNote(board)
+	if err != nil {
+		return BoardDTO{}, err
+	}
+	lanes, err := s.Store.LanesOf(path)
+	if err != nil {
+		return BoardDTO{}, err
+	}
+	notes, err := s.Store.ListNotes()
+	if err != nil {
+		return BoardDTO{}, err
+	}
+	b := BoardDTO{Columns: make([]ColumnDTO, len(lanes.Lanes))}
+	for i, l := range lanes.Lanes {
+		b.Columns[i] = ColumnDTO{ID: l.Title, Title: l.Title, Cards: []TaskDTO{}}
+	}
+	for _, n := range notes {
+		if !same(n.Path, path) {
+			continue
+		}
+		ids := s.Store.TaskIDs(n)
+		for i, t := range n.Tasks {
+			if lane := lanes.LaneOf(t.Line); lane >= 0 {
+				dto := s.taskDTO(n, ids[i], t)
+				dto.Column = lanes.Lanes[lane].Title
+				b.Columns[lane].Cards = append(b.Columns[lane].Cards, dto)
+			}
+		}
+	}
+	return b, nil
+}
+
+// MoveCard mueve la tarjeta con ese id, de un tablero de carriles, al final del carril con ese título (sin distinguir mayúsculas).
+// Solo cambia de lugar sus líneas; la casilla no se toca.
+func (s *Service) MoveCard(id, lane string) (TaskDTO, error) {
+	n, t, err := s.Store.FindTask(id)
+	if err != nil {
+		return TaskDTO{}, err
+	}
+	lanes, err := s.Store.LanesOf(n.Path)
+	if err != nil {
+		return TaskDTO{}, err
+	}
+	target := lanes.LaneIndex(lane)
+	if target < 0 {
+		var titles []string
+		for _, l := range lanes.Lanes {
+			titles = append(titles, l.Title)
+		}
+		return TaskDTO{}, usage("el carril %q no existe (hay: %s)", "lane %q does not exist (available: %s)", lane, strings.Join(titles, ", "))
+	}
+	line, err := s.Store.MoveCardToLane(n.Path, t.Line, target, n.ModTime)
+	if err != nil {
+		return TaskDTO{}, err
+	}
+	dto, err := s.afterWrite(n.Path, line)
+	dto.Column = lanes.Lanes[target].Title
+	return dto, err
+}
+
 // ColumnIDs devuelve los ids de las columnas, para las descripciones de ayuda.
 func (s *Service) ColumnIDs() []string { return append([]string(nil), s.Cols...) }
 

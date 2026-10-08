@@ -407,6 +407,16 @@ func (s *Server) getToolsList() []obj {
 			"description": i18n.E("Devuelve el tablero Kanban: las columnas configuradas, en orden, cada una con sus tarjetas.", "Returns the Kanban board: the configured columns, in order, each with its cards."),
 			"inputSchema": schema(nil, obj{}),
 		},
+		{
+			"name":        "get_board",
+			"description": i18n.E("Devuelve un tablero de carriles (una nota con encabezados ## Carril y tarjetas - [ ], la forma del plugin Kanban de Obsidian): sus carriles, en orden, cada uno con sus tarjetas.", "Returns a lane board (a note with ## Lane headings and - [ ] cards, the Obsidian Kanban plugin's shape): its lanes, in order, each with its cards."),
+			"inputSchema": schema([]string{"board"}, obj{"board": str(i18n.E("Ruta de la nota del tablero.", "Path of the board's note."))}),
+		},
+		{
+			"name":        "move_card",
+			"description": i18n.E("Mueve una tarjeta de un tablero de carriles al final de otro carril: cambia de lugar sus líneas en la nota y no toca la casilla. Si la nota cambió en disco mientras tanto, no escribe y devuelve un error.", "Moves a card of a lane board to the end of another lane: it moves the card's lines within the note and leaves the checkbox alone. If the note changed on disk in the meantime, it writes nothing and returns an error."),
+			"inputSchema": schema([]string{"id", "lane"}, obj{"id": str(idDesc), "lane": str(i18n.E("Título del carril destino (get_board muestra los que hay).", "Title of the destination lane (get_board shows the existing ones)."))}),
+		},
 	}
 }
 
@@ -521,6 +531,26 @@ func (s *Server) callTool(name string, args map[string]interface{}) CallToolResu
 		}
 		return ok(t)
 
+	case "get_board":
+		if text("board") == "" {
+			return missing("'board'")
+		}
+		b, err := svc.LaneBoard(text("board"))
+		if err != nil {
+			return fail(err)
+		}
+		return ok(b)
+
+	case "move_card":
+		if text("id") == "" || text("lane") == "" {
+			return missing("'id' y 'lane'")
+		}
+		t, err := svc.MoveCard(text("id"), text("lane"))
+		if err != nil {
+			return fail(err)
+		}
+		return ok(t)
+
 	case "get_kanban":
 		b, err := svc.Board()
 		if err != nil {
@@ -538,7 +568,7 @@ func (s *Server) callTool(name string, args map[string]interface{}) CallToolResu
 
 // argKinds son los tipos de los argumentos de las herramientas: un argumento de otro tipo es un error, no se ignora en silencio.
 var argKinds = map[string]string{
-	"path": "texto", "title": "texto", "folder": "texto", "query": "texto", "column": "texto", "note_path": "texto", "id": "texto", "field": "texto", "date": "texto",
+	"path": "texto", "title": "texto", "folder": "texto", "query": "texto", "column": "texto", "note_path": "texto", "id": "texto", "field": "texto", "date": "texto", "board": "texto", "lane": "texto",
 	"empty": "booleano", "regex": "booleano", "case_sensitive": "booleano", "pending_only": "booleano",
 	"limit": "entero", "line": "entero",
 }

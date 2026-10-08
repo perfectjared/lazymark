@@ -150,6 +150,7 @@
  "Open": "開く",
  "Open a note to paste an image": "画像を貼り付けるにはノートを開いてください",
  "Open note": "ノートを開く",
+ "Open this note as a lane board (## Lane headings and - [ ] cards); without --dir, its folder is the notes folder": "このノートをレーンボードとして開く（## レーン見出しと - [ ] カード）。--dir がなければ、そのフォルダーがノートフォルダーになる",
  "Options:\n": "オプション:\n",
  "Page down": "ページダウン",
  "Page up": "ページアップ",

@@ -1,6 +1,7 @@
 package ops
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -41,5 +42,36 @@ func TestEmptyNoteNameIsUsageInEveryLanguage(t *testing.T) {
 				t.Errorf("%s: %q: código %d (%v), se esperaba %d", lang, title, code, err, ExitUsage)
 			}
 		}
+	}
+}
+
+// TestLaneBoardAndMoveCard: un tablero de carriles se lee con sus carriles como columnas, y mover una tarjeta cambia su carril, no su id.
+func TestLaneBoardAndMoveCard(t *testing.T) {
+	dir := t.TempDir()
+	p := filepath.Join(dir, "Kanban.md")
+	if err := os.WriteFile(p, []byte("---\nkanban-plugin: board\n---\n\n## To do\n\n- [ ] a\n- [ ] b\n\n## Doing\n\n## Done\n\n- [x] c\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	s := &Service{Store: storage.New(dir), Cols: storage.DefaultColumns, Titles: []string{"todo", "doing", "done"}}
+	b, err := s.LaneBoard("Kanban.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(b.Columns) != 3 || b.Columns[0].ID != "To do" || len(b.Columns[0].Cards) != 2 || b.Columns[2].Cards[0].Column != "Done" {
+		t.Fatalf("%+v", b)
+	}
+	id := b.Columns[0].Cards[0].ID
+	moved, err := s.MoveCard(id, "doing")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if moved.ID != id || moved.Column != "Doing" || moved.Text != "a" || moved.Done {
+		t.Fatalf("%+v", moved)
+	}
+	if b, _ = s.LaneBoard("Kanban.md"); len(b.Columns[1].Cards) != 1 || len(b.Columns[0].Cards) != 1 {
+		t.Fatalf("%+v", b)
+	}
+	if _, err := s.MoveCard(id, "nope"); Code(err) != ExitUsage {
+		t.Fatalf("carril inexistente: %v", err)
 	}
 }

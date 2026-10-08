@@ -87,6 +87,9 @@ func (k *kanbanSheet) key(a Action) tea.Cmd {
 	case actMoveCardDown:
 		k.reorder(1)
 	case actToggleTask:
+		if card := k.current(); card != nil && k.c.board.Lanes != nil {
+			return k.toggleInLane(card)
+		}
 		if card := k.current(); card != nil {
 			target := k.c.cols().DoneIndex()
 			if card.Column == target {
@@ -200,7 +203,12 @@ func (k *kanbanSheet) setColumn(card *views.KanbanCard, target int) tea.Cmd {
 		return nil
 	}
 	path, line := card.NotePath, card.Task.Line
-	err := k.c.store.MoveTask(path, line, k.c.cols(), target, k.noteTime(path))
+	var err error
+	if k.c.board.Lanes != nil {
+		line, err = k.c.store.MoveCardToLane(path, line, target, k.noteTime(path)) // el bloque cambia de lugar: la tarjeta sigue en su línea nueva
+	} else {
+		err = k.c.store.MoveTask(path, line, k.c.cols(), target, k.noteTime(path))
+	}
 	switch {
 	case errors.Is(err, storage.ErrNoteChanged):
 		k.c.reload()
@@ -224,6 +232,20 @@ func (k *kanbanSheet) setColumn(card *views.KanbanCard, target int) tea.Cmd {
 	}
 	k.c.setStatus("→ %s", k.c.board.Titles[target])
 	k.c.dateNotice()
+	return nil
+}
+
+// toggleInLane marca o desmarca la tarjeta de un tablero de carriles sin moverla: el carril es el lugar en el archivo, no la casilla.
+func (k *kanbanSheet) toggleInLane(card *views.KanbanCard) tea.Cmd {
+	_, err := k.c.store.ToggleTaskIfUnchanged(card.NotePath, card.Task.Line, k.noteTime(card.NotePath))
+	switch {
+	case errors.Is(err, storage.ErrNoteChanged):
+		k.c.setStatus("%s", i18n.T("Cambió por fuera: recargada", "Changed outside: reloaded"))
+	case err != nil:
+		k.c.errStatus("No se pudo marcar la tarea", "Could not toggle the task", err)
+	}
+	k.c.reload()
+	k.clampSelection()
 	return nil
 }
 

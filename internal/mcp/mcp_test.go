@@ -110,7 +110,7 @@ func TestMCPSession(t *testing.T) {
 			t.Errorf("%s: falta la descripción o el esquema", tool.Name)
 		}
 	}
-	if got := strings.Join(names, ","); got != "list_notes,read_note,create_note,search_notes,list_tasks,move_task,set_task_date,toggle_task,get_kanban" {
+	if got := strings.Join(names, ","); got != "list_notes,read_note,create_note,search_notes,list_tasks,move_task,set_task_date,toggle_task,get_kanban,get_board,move_card" {
 		t.Errorf("herramientas: %s", got)
 	}
 

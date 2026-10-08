@@ -113,6 +113,8 @@ func DefaultKeybindings() KeybindingsConfig {
 
 // Config almacena las preferencias de ejecución de la aplicación.
 type Config struct {
+	// Board es la nota que se abre como tablero de carriles (--board), solo en esta ejecución: no se guarda.
+	Board              string            `json:"-"`
 	NotesDir           string            `json:"notes_dir"`
 	Editor             string            `json:"editor"`
 	MouseClick         bool              `json:"mouse_click"`

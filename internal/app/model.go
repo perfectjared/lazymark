@@ -89,6 +89,7 @@ func New(cfg *config.Config) (*AppModel, error) {
 	m.tasks = tasksPanel{c: c}
 	m.tags = tagsPanel{c: c}
 	m.kanban = kanbanSheet{c: c}
+	m.kanbanOn = cfg.Board != "" // --board abre directo en su tablero
 	c.setStatus("%s", loadedStatus(len(c.notes)))
 	if w := cfg.Warnings(); len(w) > 0 { // lo que se vio raro en config.json (un valor inválido, una clave desconocida, un archivo ilegible): el primero en la barra de estado
 		msg := w[0]

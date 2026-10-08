@@ -150,6 +150,7 @@
  "Open": "Apri",
  "Open a note to paste an image": "Apri una nota per incollare un'immagine",
  "Open note": "Apri nota",
+ "Open this note as a lane board (## Lane headings and - [ ] cards); without --dir, its folder is the notes folder": "Apre questa nota come bacheca a corsie (titoli ## Corsia e schede - [ ]); senza --dir, la sua cartella è la cartella delle note",
  "Options:\n": "Opzioni:\n",
  "Page down": "Pagina giù",
  "Page up": "Pagina su",

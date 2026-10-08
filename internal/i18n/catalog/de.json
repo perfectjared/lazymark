@@ -150,6 +150,7 @@
  "Open": "Öffnen",
  "Open a note to paste an image": "Öffne eine Notiz, um ein Bild einzufügen",
  "Open note": "Notiz öffnen",
+ "Open this note as a lane board (## Lane headings and - [ ] cards); without --dir, its folder is the notes folder": "Öffnet diese Notiz als Spalten-Board (## Spalten-Überschriften und - [ ]-Karten); ohne --dir ist ihr Ordner der Notizordner",
  "Options:\n": "Optionen:\n",
  "Page down": "Seite nach unten",
  "Page up": "Seite nach oben",

@@ -64,12 +64,34 @@ func (c *core) reload() {
 	c.gen++
 	c.tags = views.CollectTags(c.notes)
 	c.collectTasks()
-	c.board = views.CollectKanban(c.notes, c.cols(), c.columnTitles())
+	c.board = c.collectBoard()
 	c.trashCount = c.store.CountTrash()
 	if issues := c.store.TrashIssues(); len(issues) > 0 && len(issues) != c.trashWarned {
 		c.trashWarned = len(issues) // se avisa una vez por cambio, no en cada recarga
 		c.setStatus("%s", i18n.T("Papelera: se ignoraron entradas inválidas de trash.json", "Trash: invalid trash.json entries were ignored"))
 	}
+}
+
+// collectBoard arma el tablero: el de carriles de --board si lo hay, si no el de etiquetas de todas las notas. Si la nota de --board
+// no está o no se lee, el tablero queda vacío y la barra de estado dice por qué.
+func (c *core) collectBoard() views.KanbanBoard {
+	if c.cfg.Board == "" {
+		return views.CollectKanban(c.notes, c.cols(), c.columnTitles())
+	}
+	path, err := c.store.ResolveNote(c.cfg.Board)
+	if err == nil {
+		var lanes storage.LaneBoard
+		if lanes, err = c.store.LanesOf(path); err == nil {
+			for _, n := range c.notes {
+				if n.Path == path {
+					return views.CollectLaneBoard(n, lanes)
+				}
+			}
+			err = storage.ErrOutsideNotes
+		}
+	}
+	c.errStatus("No se pudo leer el tablero", "Could not read the board", err)
+	return views.KanbanBoard{Lanes: &storage.LaneBoard{}, Path: c.cfg.Board}
 }
 
 // scopedNotes aplica el alcance de tareas de la config: "all", "tag:<tag>" o

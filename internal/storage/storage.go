@@ -255,6 +255,9 @@ func (s *Storage) ListEntries() ([]NoteEntry, error) {
 	return s.ListTreeEntries(nil)
 }
 
+// skipDirs son carpetas de código que no tienen notas y pueden ser enormes (las mismas que salta wb): --dir puede ser la raíz de un repositorio.
+var skipDirs = map[string]bool{"node_modules": true, "target": true, "dist": true, "build": true, "vendor": true, "coverage": true}
+
 // ListNotes escanea recursivamente todas las notas .md del BaseDir para tags y tareas globales
 func (s *Storage) ListNotes() ([]Note, error) {
 	var notes []Note
@@ -265,7 +268,7 @@ func (s *Storage) ListNotes() ([]Note, error) {
 		}
 		if d.IsDir() {
 			name := d.Name()
-			if (strings.HasPrefix(name, ".") && name != ".") || strings.EqualFold(name, "assets") {
+			if (strings.HasPrefix(name, ".") && name != ".") || strings.EqualFold(name, "assets") || (skipDirs[name] && path != s.BaseDir) {
 				return filepath.SkipDir
 			}
 			return nil

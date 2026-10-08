@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
@@ -144,12 +145,14 @@ func main() {
 		showVersion bool
 		noMouse     bool
 		themeName   string
+		board       string
 	)
 
 	flag.StringVar(&customDir, "dir", "", i18n.T("Carpeta de notas (por defecto: ~/Documents/notes)", "Notes folder (default: ~/Documents/notes)"))
 	flag.BoolVar(&showVersion, "version", false, i18n.T("Muestra la versión y sale", "Print the version and exit"))
 	flag.BoolVar(&showVersion, "v", false, i18n.T("Alias de --version", "Alias for --version"))
 	flag.BoolVar(&noMouse, "no-mouse", false, i18n.T("Desactiva el mouse", "Disable mouse input"))
+	flag.StringVar(&board, "board", "", i18n.T("Abre esta nota como tablero de carriles (## Carril y tarjetas - [ ]); sin --dir, su carpeta es la de notas", "Open this note as a lane board (## Lane headings and - [ ] cards); without --dir, its folder is the notes folder"))
 	flag.StringVar(&themeName, "theme", "", i18n.T("Tema de colores: ", "Color theme: ")+strings.Join(theme.ThemeNames(), ", "))
 
 	flag.Usage = func() {
@@ -171,6 +174,18 @@ func main() {
 		os.Exit(0)
 	}
 
+	if board != "" {
+		abs, err := filepath.Abs(board)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "lazymark: --board %s: %v\n", board, err)
+			os.Exit(2)
+		}
+		board = abs
+		if customDir == "" {
+			customDir = filepath.Dir(abs)
+		}
+	}
+
 	cfg, err := config.Load(customDir)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, i18n.E("Error al inicializar la configuración: %v\n", "Could not initialize the configuration: %v\n"), err)
@@ -184,6 +199,7 @@ func main() {
 	if themeName != "" {
 		cfg.OverrideTheme(themeName) // solo esta ejecución: no se guarda en config.json
 	}
+	cfg.Board = board
 
 	appModel, err := app.New(cfg)
 	if err != nil {

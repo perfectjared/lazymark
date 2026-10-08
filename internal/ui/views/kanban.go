@@ -27,6 +27,9 @@ type KanbanBoard struct {
 	IDs    []string
 	Titles []string
 	Cols   [][]KanbanCard
+	// Lanes es el tablero de carriles que se muestra (Path es su nota), o nil para el tablero de etiquetas.
+	Lanes *storage.LaneBoard
+	Path  string
 }
 
 // NumCols es la cantidad de columnas.
@@ -64,6 +67,34 @@ func CollectKanban(notes []storage.Note, cols storage.Columns, titles []string) 
 				NoteTitle: note.Title,
 				CleanText: storage.CleanTaskText(task.Text),
 				Column:    col,
+			})
+		}
+	}
+	return board
+}
+
+// CollectLaneBoard arma el tablero de la nota note con sus carriles lanes: una columna por carril, con sus tarjetas en el orden del
+// archivo. Una tarjeta que el lector de tareas no reconoce como tarea no se muestra.
+func CollectLaneBoard(note storage.Note, lanes storage.LaneBoard) KanbanBoard {
+	board := KanbanBoard{Cols: make([][]KanbanCard, len(lanes.Lanes)), Lanes: &lanes, Path: note.Path}
+	tasks := make(map[int]storage.Task, len(note.Tasks))
+	for _, t := range note.Tasks {
+		tasks[t.Line] = t
+	}
+	for i, lane := range lanes.Lanes {
+		board.IDs = append(board.IDs, strings.ToLower(lane.Title))
+		board.Titles = append(board.Titles, lane.Title)
+		for _, line := range lane.Cards {
+			task, ok := tasks[line]
+			if !ok {
+				continue
+			}
+			board.Cols[i] = append(board.Cols[i], KanbanCard{
+				Task:      task,
+				NotePath:  note.Path,
+				NoteTitle: note.Title,
+				CleanText: storage.CleanTaskText(task.Text),
+				Column:    i,
 			})
 		}
 	}
@@ -212,5 +243,11 @@ func RenderKanban(board KanbanBoard, activeCol int, selectedRows []int, width, h
 	return lipgloss.JoinHorizontal(lipgloss.Top, rendered...)
 }
 
-// doneIndex es la columna de las tareas hechas ("done", o la última).
-func (b *KanbanBoard) doneIndex() int { return storage.Columns(b.IDs).DoneIndex() }
+// doneIndex es la columna de las tareas hechas: en el tablero de etiquetas, "done" o la última; en uno de carriles, la que se llama
+// "done" o ninguna (-1).
+func (b *KanbanBoard) doneIndex() int {
+	if b.Lanes != nil {
+		return b.Lanes.DoneIndex()
+	}
+	return storage.Columns(b.IDs).DoneIndex()
+}
