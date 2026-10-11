@@ -1,0 +1,21 @@
+{
+  "schema": "workbench.checkpoint/1",
+  "updated": "2026-10-11T19:33:40Z",
+  "by": "mac",
+  "headline": "The wb fork of lazymark runs on the mac and the desktop (lane boards, MCP board tools); upstream is 36 commits ahead and conflicts with the fork; a Claude tab is being planned.",
+  "state": "building",
+  "done": [
+    "upstream remote added (MathiasDrizzy/lazymark): upstream 36 ahead, fork 3 ahead; a test merge conflicts",
+    "Built on the mac into ~/.local/bin (GOBIN=~/.local/bin go install ./cmd/lazymark); MCP initialize handshake answers",
+    "--dir relative to the working directory is made absolute",
+    "Lane boards: read and edit Obsidian Kanban plugin boards in place; MCP get_board, move_card, toggle_task",
+    "Tags v1.0.0-wb.20261008-01 and -02; claude-connect's tasks tab execs lazymark --board, install.sh builds it with Go"
+  ],
+  "next": [
+    "Plan the Claude tab/section with the user (what it shows, how it talks to Claude Code)",
+    "Merge upstream/main: resolve the conflicts, rerun the suite, retag",
+    "Install Go on armada so claude-connect's install.sh builds lazymark there",
+    "Then delete claude-connect's kanban.rs and kanbanview.rs"
+  ],
+  "notes": "Suite passes except TestAcceptedRegexIsFast, a timing limit some machines miss. Tag -02 predates a README link fix, so that commit fails the README test; main passes. Upstream commit messages are partly in Spanish."
+}
